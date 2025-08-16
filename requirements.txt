@@ -1,0 +1,12 @@
+numpy
+Flask
+SQLAlchemy
+pandas
+matplotlib
+seaborn
+streamlit
+pytesseract
+Pillow
+requests
+ollama
+python-dotenv
