@@ -39,6 +39,9 @@ financial-analysis-app/
 ```
 
 ## Installation
+python3 -m venv .
+source bin/activate
+deactivate
 
 1. Clone the repository:
    ```

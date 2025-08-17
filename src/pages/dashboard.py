@@ -3,7 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from database import get_db_session, Expense, Income, Asset, Liability
 
-def display_dashboard():
+def show_dashboard():
     st.title("Financial Dashboard")
     
     session = get_db_session()
@@ -30,4 +30,4 @@ def display_dashboard():
     session.close()
 
 if __name__ == "__main__":
-    display_dashboard()
+    show_dashboard()

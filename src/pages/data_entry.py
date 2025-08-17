@@ -1,4 +1,4 @@
-from streamlit import st
+from streamlit.web import cli as st
 from database import get_db_session, Expense, Liability
 import pandas as pd
 

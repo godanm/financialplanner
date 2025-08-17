@@ -1,4 +1,9 @@
-from database import get_db_session, FamilyMember
+from db_utils import get_db_session, engine
+from models import FamilyMember, Base
+
+def create_tables():
+    """Create all tables defined in the Base class."""
+    Base.metadata.create_all(bind=engine)
 
 def seed_family_data():
     session = get_db_session()
@@ -14,4 +19,5 @@ def seed_family_data():
     session.close()
 
 if __name__ == "__main__":
+    create_tables()      # <-- Add this line to create the tables first
     seed_family_data()
