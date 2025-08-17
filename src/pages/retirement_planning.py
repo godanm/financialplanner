@@ -25,7 +25,7 @@ def show_retirement_planning():
     st.markdown("Plan your financial future with comprehensive retirement analysis")
     
     # Check if user has a retirement profile
-    session = get_database_session()
+    session = get_db_session()
     user_id = st.session_state.get('user_id', 'default_user')
     profile = get_retirement_profile(session, user_id)
     

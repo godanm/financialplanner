@@ -277,4 +277,456 @@ def create_withdrawal_strategy_comparison(strategies: Dict) -> go.Figure:
     )
     
     fig.update_yaxes(title_text="Success Rate (%)", row=1, col=1)
-    fig.update
+    fig.update_yaxes(title_text="Annual Income ($)", tickformat="$,.0f", row=1, col=2)
+    
+    return fig
+
+def create_savings_breakdown_chart(projections: Dict) -> go.Figure:
+    """Create savings breakdown pie chart"""
+    
+    current_savings_fv = projections.get('current_savings_future_value', 0)
+    contributions_fv = projections.get('contributions_future_value', 0)
+    
+    labels = ['Current Savings Growth', 'Future Contributions']
+    values = [current_savings_fv, contributions_fv]
+    colors = ['#FF6B6B', '#4ECDC4']
+    
+    fig = go.Figure(data=[go.Pie(
+        labels=labels,
+        values=values,
+        hole=0.4,
+        marker_colors=colors,
+        textinfo='label+percent+value',
+        texttemplate='%{label}<br>%{percent}<br>$%{value:,.0f}',
+        hovertemplate='<b>%{label}</b><br>Amount: $%{value:,.0f}<br>Percentage: %{percent}<extra></extra>'
+    )])
+    
+    fig.update_layout(
+        title={
+            'text': 'Retirement Savings Breakdown',
+            'x': 0.5,
+            'xanchor': 'center'
+        },
+        template='plotly_white',
+        height=400
+    )
+    
+    return fig
+
+def create_goal_progress_chart(goals: List[Dict]) -> go.Figure:
+    """Create goal progress chart"""
+    
+    if not goals:
+        return go.Figure()
+    
+    goal_names = [goal['goal_name'] for goal in goals]
+    target_amounts = [goal['target_amount'] for goal in goals]
+    current_progress = [goal.get('current_progress', 0) for goal in goals]
+    progress_percentages = [
+        (progress / target * 100) if target > 0 else 0 
+        for progress, target in zip(current_progress, target_amounts)
+    ]
+    
+    fig = go.Figure()
+    
+    # Target amounts (background bars)
+    fig.add_trace(go.Bar(
+        x=goal_names,
+        y=target_amounts,
+        name='Target Amount',
+        marker_color='lightgray',
+        opacity=0.6
+    ))
+    
+    # Current progress (overlay bars)
+    fig.add_trace(go.Bar(
+        x=goal_names,
+        y=current_progress,
+        name='Current Progress',
+        marker_color='green',
+        text=[f"{pct:.1f}%" for pct in progress_percentages],
+        textposition='auto'
+    ))
+    
+    fig.update_layout(
+        title={
+            'text': 'Retirement Goals Progress',
+            'x': 0.5,
+            'xanchor': 'center'
+        },
+        xaxis_title="Goals",
+        yaxis_title="Amount ($)",
+        template='plotly_white',
+        barmode='overlay',
+        height=400
+    )
+    
+    fig.update_yaxis(tickformat="$,.0f")
+    
+    return fig
+
+def create_cash_flow_chart(yearly_data: List[Dict]) -> go.Figure:
+    """Create cash flow chart showing contributions and withdrawals"""
+    
+    if not yearly_data:
+        return go.Figure()
+    
+    df = pd.DataFrame(yearly_data)
+    
+    fig = go.Figure()
+    
+    # Contributions (positive cash flow)
+    contributions = df[df['contribution'] > 0]
+    if not contributions.empty:
+        fig.add_trace(go.Bar(
+            x=contributions['age'],
+            y=contributions['contribution'],
+            name='Contributions',
+            marker_color='green',
+            opacity=0.7
+        ))
+    
+    # Withdrawals (negative cash flow)
+    withdrawals = df[df['withdrawal'] > 0]
+    if not withdrawals.empty:
+        fig.add_trace(go.Bar(
+            x=withdrawals['age'],
+            y=-withdrawals['withdrawal'],
+            name='Withdrawals',
+            marker_color='red',
+            opacity=0.7
+        ))
+    
+    # Investment returns
+    fig.add_trace(go.Scatter(
+        x=df['age'],
+        y=df['investment_return'],
+        mode='lines',
+        name='Investment Returns',
+        line=dict(color='blue', width=2),
+        yaxis='y2'
+    ))
+    
+    fig.update_layout(
+        title={
+            'text': 'Retirement Cash Flow Analysis',
+            'x': 0.5,
+            'xanchor': 'center'
+        },
+        xaxis_title="Age",
+        yaxis_title="Cash Flow ($)",
+        template='plotly_white',
+        height=500,
+        yaxis2=dict(
+            title="Investment Returns ($)",
+            overlaying='y',
+            side='right',
+            tickformat="$,.0f"
+        )
+    )
+    
+    fig.update_yaxis(tickformat="$,.0f")
+    
+    return fig
+
+def create_inflation_impact_chart(base_amount: float, years: int, inflation_rate: float) -> go.Figure:
+    """Create chart showing inflation impact over time"""
+    
+    years_range = list(range(0, years + 1))
+    real_values = [base_amount / ((1 + inflation_rate) ** year) for year in years_range]
+    nominal_values = [base_amount for _ in years_range]
+    
+    fig = go.Figure()
+    
+    fig.add_trace(go.Scatter(
+        x=years_range,
+        y=nominal_values,
+        mode='lines',
+        name='Nominal Value',
+        line=dict(color='blue', width=3)
+    ))
+    
+    fig.add_trace(go.Scatter(
+        x=years_range,
+        y=real_values,
+        mode='lines',
+        name='Real Value (Inflation Adjusted)',
+        line=dict(color='red', width=3),
+        fill='tonexty',
+        fillcolor='rgba(255,0,0,0.1)'
+    ))
+    
+    fig.update_layout(
+        title={
+            'text': f'Impact of {inflation_rate*100:.1f}% Inflation Over Time',
+            'x': 0.5,
+            'xanchor': 'center'
+        },
+        xaxis_title="Years",
+        yaxis_title="Value ($)",
+        template='plotly_white',
+        height=400
+    )
+    
+    fig.update_yaxis(tickformat="$,.0f")
+    
+    return fig
+
+def create_account_allocation_chart(accounts: List[Dict]) -> go.Figure:
+    """Create account allocation chart"""
+    
+    if not accounts:
+        return go.Figure()
+    
+    account_types = [acc['account_type'] for acc in accounts]
+    balances = [acc['current_balance'] for acc in accounts]
+    
+    # Color map for different account types
+    color_map = {
+        '401k': '#FF6B6B',
+        'IRA': '#4ECDC4',
+        'Roth_IRA': '#45B7D1',
+        'Roth_401k': '#96CEB4',
+        'HSA': '#FECA57',
+        'Taxable': '#FF9FF3'
+    }
+    
+    colors = [color_map.get(acc_type, '#95A5A6') for acc_type in account_types]
+    
+    fig = go.Figure(data=[go.Pie(
+        labels=account_types,
+        values=balances,
+        hole=0.4,
+        marker_colors=colors,
+        textinfo='label+percent+value',
+        texttemplate='%{label}<br>%{percent}<br>$%{value:,.0f}',
+        hovertemplate='<b>%{label}</b><br>Balance: $%{value:,.0f}<br>Percentage: %{percent}<extra></extra>'
+    )])
+    
+    fig.update_layout(
+        title={
+            'text': 'Retirement Account Allocation',
+            'x': 0.5,
+            'xanchor': 'center'
+        },
+        template='plotly_white',
+        height=400
+    )
+    
+    return fig
+
+def create_tax_analysis_chart(tax_analysis: Dict) -> go.Figure:
+    """Create tax analysis chart"""
+    
+    current_rate = tax_analysis.get('current_tax_rate', 0) * 100
+    retirement_rate = tax_analysis.get('retirement_tax_rate', 0) * 100
+    
+    categories = ['Current Tax Rate', 'Retirement Tax Rate']
+    rates = [current_rate, retirement_rate]
+    colors = ['blue', 'orange']
+    
+    fig = go.Figure(data=[go.Bar(
+        x=categories,
+        y=rates,
+        marker_color=colors,
+        text=[f"{rate:.1f}%" for rate in rates],
+        textposition='auto'
+    )])
+    
+    fig.update_layout(
+        title={
+            'text': 'Tax Rate Comparison',
+            'x': 0.5,
+            'xanchor': 'center'
+        },
+        yaxis_title="Tax Rate (%)",
+        template='plotly_white',
+        height=300
+    )
+    
+    return fig
+
+def create_scenario_comparison_chart(scenarios: List[Dict]) -> go.Figure:
+    """Create scenario comparison chart"""
+    
+    if not scenarios:
+        return go.Figure()
+    
+    scenario_names = [s['scenario_name'] for s in scenarios]
+    corpus_needed = [s.get('corpus_needed', 0) for s in scenarios]
+    projected_savings = [s.get('projected_savings', 0) for s in scenarios]
+    
+    fig = go.Figure()
+    
+    fig.add_trace(go.Bar(
+        x=scenario_names,
+        y=corpus_needed,
+        name='Corpus Needed',
+        marker_color='lightcoral',
+        opacity=0.8
+    ))
+    
+    fig.add_trace(go.Bar(
+        x=scenario_names,
+        y=projected_savings,
+        name='Projected Savings',
+        marker_color='lightblue',
+        opacity=0.8
+    ))
+    
+    fig.update_layout(
+        title={
+            'text': 'Scenario Comparison',
+            'x': 0.5,
+            'xanchor': 'center'
+        },
+        xaxis_title="Scenarios",
+        yaxis_title="Amount ($)",
+        template='plotly_white',
+        barmode='group',
+        height=400
+    )
+    
+    fig.update_yaxis(tickformat="$,.0f")
+    
+    return fig
+
+def create_risk_assessment_radar(risk_factors: Dict) -> go.Figure:
+    """Create risk assessment radar chart"""
+    
+    categories = list(risk_factors.keys())
+    values = list(risk_factors.values())
+    
+    # Close the radar chart
+    categories += [categories[0]]
+    values += [values[0]]
+    
+    fig = go.Figure()
+    
+    fig.add_trace(go.Scatterpolar(
+        r=values,
+        theta=categories,
+        fill='toself',
+        name='Risk Profile',
+        line_color='red',
+        fillcolor='rgba(255,0,0,0.2)'
+    ))
+    
+    fig.update_layout(
+        polar=dict(
+            radialaxis=dict(
+                visible=True,
+                range=[0, 10]
+            )),
+        title={
+            'text': 'Retirement Risk Assessment',
+            'x': 0.5,
+            'xanchor': 'center'
+        },
+        template='plotly_white',
+        height=400
+    )
+    
+    return fig
+
+def create_milestone_timeline(milestones: List[Dict]) -> go.Figure:
+    """Create milestone timeline chart"""
+    
+    if not milestones:
+        return go.Figure()
+    
+    ages = [m['target_age'] for m in milestones]
+    amounts = [m['target_amount'] for m in milestones]
+    names = [m['goal_name'] for m in milestones]
+    
+    fig = go.Figure()
+    
+    fig.add_trace(go.Scatter(
+        x=ages,
+        y=amounts,
+        mode='markers+lines+text',
+        text=names,
+        textposition='top center',
+        marker=dict(size=12, color='blue'),
+        line=dict(color='blue', width=2)
+    ))
+    
+    fig.update_layout(
+        title={
+            'text': 'Retirement Milestones Timeline',
+            'x': 0.5,
+            'xanchor': 'center'
+        },
+        xaxis_title="Age",
+        yaxis_title="Target Amount ($)",
+        template='plotly_white',
+        height=400
+    )
+    
+    fig.update_yaxis(tickformat="$,.0f")
+    
+    return fig
+
+# Utility functions for chart creation
+def format_hover_template(template: str) -> str:
+    """Format hover template for consistency"""
+    return template + '<extra></extra>'
+
+def get_color_palette(n_colors: int) -> List[str]:
+    """Get a color palette for charts"""
+    colors = [
+        '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
+        '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'
+    ]
+    return colors[:n_colors] * (n_colors // len(colors) + 1)
+
+def apply_chart_theme(fig: go.Figure, title: str = None) -> go.Figure:
+    """Apply consistent theme to charts"""
+    
+    fig.update_layout(
+        template='plotly_white',
+        font=dict(size=12),
+        title=dict(
+            text=title,
+            x=0.5,
+            xanchor='center',
+            font=dict(size=16, color='#2E4057')
+        ) if title else None,
+        plot_bgcolor='white',
+        paper_bgcolor='white'
+    )
+    
+    return fig
+
+# Export function for external use
+def create_comprehensive_retirement_report(results: Dict, profile) -> List[go.Figure]:
+    """Create all charts for comprehensive report"""
+    
+    charts = []
+    
+    # Main projection chart
+    if results.get('yearly_projections'):
+        charts.append(create_retirement_projection_chart(results['yearly_projections'], profile))
+    
+    # Sensitivity analysis
+    if results.get('sensitivity_analysis'):
+        charts.append(create_sensitivity_chart(results['sensitivity_analysis'], 
+                                             results['savings_projections']['total_projected_savings']))
+    
+    # Monte Carlo results
+    if results.get('monte_carlo_results'):
+        charts.append(create_monte_carlo_chart(results['monte_carlo_results']))
+    
+    # Withdrawal strategies
+    if results.get('withdrawal_strategies'):
+        charts.append(create_withdrawal_strategy_comparison(results['withdrawal_strategies']))
+    
+    # Savings breakdown
+    if results.get('savings_projections'):
+        charts.append(create_savings_breakdown_chart(results['savings_projections']))
+    
+    # Cash flow analysis
+    if results.get('yearly_projections'):
+        charts.append(create_cash_flow_chart(results['yearly_projections']))
+    
+    return charts
