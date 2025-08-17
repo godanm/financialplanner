@@ -10,3 +10,4 @@ Pillow
 requests
 ollama
 python-dotenv
+plotly

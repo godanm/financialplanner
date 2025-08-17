@@ -53,6 +53,20 @@ class Asset(Base):
     
     # Relationships
     user = relationship("User", back_populates="assets")
+    
+class Income(Base):
+    """Income tracking"""
+    __tablename__ = 'income'
+    
+    id = Column(Integer, primary_key=True)
+    user_id = Column(String(50), ForeignKey('users.user_id'), nullable=False)
+    income_type = Column(String(50), nullable=False)  # savings, investment, property, etc.
+    name = Column(String(100), nullable=False)
+    current_value = Column(Float, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    user = relationship("User", back_populates="income")
 
 class Liability(Base):
     """Liability tracking"""

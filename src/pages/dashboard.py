@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
-from database import get_db_session, Expense, Income, Asset, Liability
+from database import get_db_session, Income, Expense, Asset, Liability
 
 def show_dashboard():
     st.title("Financial Dashboard")

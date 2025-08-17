@@ -8,7 +8,7 @@ src_path = Path(__file__).parent
 sys.path.insert(0, str(src_path))
 
 # Import database utilities
-from database.db_utils import init_database, get_database_session
+from database.db_utils import init_database, get_db_session
 from database.models import Base
 
 # Import pages

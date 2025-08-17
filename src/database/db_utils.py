@@ -44,9 +44,10 @@ def init_database():
         print(f"Database initialization failed: {e}")
         return False
 
-def get_database_session() -> Session:
-    """Get a database session"""
-    return SessionLocal()
+def get_db_session(db_path="financial.db"):
+    engine = create_engine(f"sqlite:///{db_path}")
+    Session = sessionmaker(bind=engine)
+    return Session()
 
 # User Management Functions
 def get_or_create_user(session: Session, user_id: str, name: str = None, email: str = None) -> User:
